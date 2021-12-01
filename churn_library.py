@@ -1,25 +1,29 @@
 # library doc string
 '''
+Churn library
 
+Author: xxxx
+Date: November 2021
 
 '''
 
 # import libraries
+from sklearn.metrics import plot_roc_curve, classification_report
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import normalize
 import shap
 import joblib
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns; sns.set()
+import seaborn as sns
+sns.set()
 
-from sklearn.preprocessing import normalize
-from sklearn.model_selection import train_test_split
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-
-from sklearn.metrics import plot_roc_curve, classification_report
+IMAGE_PATH = './images/'
 
 
 def import_data(pth):
@@ -30,8 +34,9 @@ def import_data(pth):
             pth: a path to the csv
     output:
             df: pandas dataframe
-    '''	
-    df = pd.read_csv(r"pth")
+    '''
+    # df = pd.read_csv(r"pth")
+    df = pd.read_csv(pth)
     return df
 
 
@@ -44,37 +49,61 @@ def perform_eda(df):
     output:
             None
     '''
-    print(df.shape)
-    print(df.isnull().sum())
-    print(df.describe)
-    cat_columns = [
-    'Gender',
-    'Education_Level',
-    'Marital_Status',
-    'Income_Category',
-    'Card_Category'                
-    ]
-    quant_columns = [
-    'Customer_Age',
-    'Dependent_count', 
-    'Months_on_book',
-    'Total_Relationship_Count', 
-    'Months_Inactive_12_mon',
-    'Contacts_Count_12_mon', 
-    'Credit_Limit', 
-    'Total_Revolving_Bal',
-    'Avg_Open_To_Buy', 
-    'Total_Amt_Chng_Q4_Q1', 
-    'Total_Trans_Amt',
-    'Total_Trans_Ct', 
-    'Total_Ct_Chng_Q4_Q1', 
-    'Avg_Utilization_Ratio'
-    ]
-    df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
-    my_fig = plt.figure(figsize=(20,10)) 
-    df['Churn'].hist()
-    my_fig.savefig("./Churn_hist.png")
-    pass
+
+    try:
+        print(df.shape)
+        print(df.isnull().sum())
+        print(df.describe)
+        cat_columns = [
+            'Gender',
+            'Education_Level',
+            'Marital_Status',
+            'Income_Category',
+            'Card_Category'
+        ]
+        quant_columns = [
+            'Customer_Age',
+            'Dependent_count',
+            'Months_on_book',
+            'Total_Relationship_Count',
+            'Months_Inactive_12_mon',
+            'Contacts_Count_12_mon',
+            'Credit_Limit',
+            'Total_Revolving_Bal',
+            'Avg_Open_To_Buy',
+            'Total_Amt_Chng_Q4_Q1',
+            'Total_Trans_Amt',
+            'Total_Trans_Ct',
+            'Total_Ct_Chng_Q4_Q1',
+            'Avg_Utilization_Ratio'
+        ]
+        df['Churn'] = df['Attrition_Flag'].apply(
+            lambda val: 0 if val == "Existing Customer" else 1)
+
+        my_fig = plt.figure(figsize=(20, 10))
+        df['Churn'].hist()
+        my_fig.savefig(IMAGE_PATH + "Churn_hist.png")
+
+        my_fig = plt.figure(figsize=(20, 10))
+        df['Customer_Age'].hist()
+        my_fig.savefig(IMAGE_PATH + "Customer_Age_hist.png")
+
+        my_fig = plt.figure(figsize=(20, 10))
+        df.Marital_Status.value_counts('normalize').plot(kind='bar')
+        my_fig.savefig(IMAGE_PATH + "Material_Status.png")
+
+        my_fig = plt.figure(figsize=(20, 10))
+        sns.distplot(df['Total_Trans_Ct'])
+        my_fig.savefig(IMAGE_PATH + "Total_Trans_Ct.png")
+
+        my_fig = plt.figure(figsize=(20, 10))
+        sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths=2)
+        my_fig.savefig(IMAGE_PATH + "heat_map.png")
+
+    except Exception:
+        return False
+
+    return True
 
 
 def encoder_helper(df, category_lst, response):
@@ -105,8 +134,7 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
-    
-    
+
 
 def classification_report_image(y_train,
                                 y_test,
@@ -143,6 +171,7 @@ def feature_importance_plot(model, X_data, output_pth):
              None
     '''
     pass
+
 
 def train_models(X_train, X_test, y_train, y_test):
     '''
