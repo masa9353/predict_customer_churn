@@ -96,8 +96,11 @@ def test_encoder_helper(import_bank_data):
     try:
         df: pd.DataFrame = import_bank_data
         result_df = churn.encoder_helper(df, cat_columns, 'Churn')
+        columns = result_df.columns
+        # Check that category index has been added
         for cat in cat_columns:
-            assert result_df.columns.isin[cat + '_' + 'Churn'] == True
+            is_true = any(columns.isin([cat + '_' + 'Churn']))
+            assert is_true == True
     except AssertionError as e:
         raise e
 
@@ -117,4 +120,6 @@ def test_train_models(train_models):
 
 
 if __name__ == "__main__":
+    print("test test")
+    test_encoder_helper(import_bank_data)
     pass
