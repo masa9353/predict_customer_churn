@@ -1,19 +1,19 @@
-# Predict Customer Churn
+# 1. Predict Customer Churn
 
 - Project **Predict Customer Churn** of ML DevOps Engineer Nanodegree Udacity
 
-## Project Description
+## 1.1. Project Description
 Your project description here.
 
 
-## Running Files
+## 1.2. Running Files
 How do you run your files? What should happen when you run your files?
 
 
-# predict_customer_churn
+# 2. predict_customer_churn
 
 
-# Useful command with conda
+# 3. Useful command with conda
 
 
 Initial library install on github source
@@ -24,7 +24,7 @@ conda install shap joblib pandas numpy matplotlib seaborn scikit-learn jupyter p
 conda install pytest
 ````
 
-# Refactoring
+# Refactoring command
 
 ```
 pylint script_name.py

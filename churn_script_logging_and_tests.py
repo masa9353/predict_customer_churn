@@ -9,6 +9,7 @@ Date: November 2021
 import os
 import logging
 import churn_library as churn
+import pandas as pd
 import pytest
 
 logging.basicConfig(
@@ -31,6 +32,19 @@ def eda_fixture(import_bank_data):
     df = import_bank_data
 
     yield df
+
+
+@pytest.fixture(scope="module", autouse=True)
+def encoder_helper_fixture(import_bank_data):
+    df = import_bank_data
+    cat_columns = [
+        'Gender',
+        'Education_Level',
+        'Marital_Status',
+        'Income_Category',
+        'Card_Category'
+    ]
+    yield df, cat_columns
 
 
 def test_import(import_bank_data):
@@ -63,16 +77,29 @@ def test_eda(import_bank_data):
         assert churn.perform_eda(df) is True
         logging.info("Testing perform_eda: SUCCESS")
 
-    except Exception as e:
+    except AssertionError as e:
         logging.error("Fail: Testing perform_eda")
         raise e
 
 
-def test_encoder_helper(encoder_helper):
+def test_encoder_helper(import_bank_data):
     '''
     test encoder helper
     '''
-    pass
+    cat_columns = [
+        'Gender',
+        'Education_Level',
+        'Marital_Status',
+        'Income_Category',
+        'Card_Category'
+    ]
+    try:
+        df: pd.DataFrame = import_bank_data
+        result_df = churn.encoder_helper(df, cat_columns, 'Churn')
+        for cat in cat_columns:
+            assert result_df.columns.isin[cat + '_' + 'Churn'] == True
+    except AssertionError as e:
+        raise e
 
 
 def test_perform_feature_engineering(perform_feature_engineering):

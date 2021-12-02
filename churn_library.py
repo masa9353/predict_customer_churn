@@ -106,7 +106,7 @@ def perform_eda(df):
     return True
 
 
-def encoder_helper(df, category_lst, response):
+def encoder_helper(df, category_lst, response:str):
     '''
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
@@ -119,7 +119,17 @@ def encoder_helper(df, category_lst, response):
     output:
             df: pandas dataframe with new columns for
     '''
-    pass
+    try:
+        for cat in category_lst:
+            tmp_list = []
+            groups = df.groupby(cat).mean()[response]
+            for val in df[cat]:
+                tmp_list.append(groups.loc[val])
+            df[cat + '_' + response] = tmp_list
+    except Exception as e:
+        raise e
+
+    return df
 
 
 def perform_feature_engineering(df, response):
@@ -134,7 +144,12 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
+    y = df['Churn']
+    X = pd.DataFrame()
 
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= 0.3, random_state=42)
+    return 
 
 def classification_report_image(y_train,
                                 y_test,
