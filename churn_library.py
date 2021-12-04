@@ -24,6 +24,8 @@ sns.set()
 
 
 IMAGE_PATH = './images/'
+SCORE_RESULT_PATH = './results.txt'
+RESULT_IMAGE_PATH = './images/results/'
 
 
 def import_data(pth):
@@ -106,7 +108,7 @@ def perform_eda(df):
     return True
 
 
-def encoder_helper(df, category_lst, response:str):
+def encoder_helper(df, category_lst, response: str):
     '''
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
@@ -144,12 +146,29 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
-    y = df['Churn']
+    cat_columns = [
+        'Gender',
+        'Education_Level',
+        'Marital_Status',
+        'Income_Category',
+        'Card_Category'
+    ]
+    keep_cols = ['Customer_Age', 'Dependent_count', 'Months_on_book',
+                 'Total_Relationship_Count', 'Months_Inactive_12_mon',
+                 'Contacts_Count_12_mon', 'Credit_Limit', 'Total_Revolving_Bal',
+                 'Avg_Open_To_Buy', 'Total_Amt_Chng_Q4_Q1', 'Total_Trans_Amt',
+                 'Total_Trans_Ct', 'Total_Ct_Chng_Q4_Q1', 'Avg_Utilization_Ratio',
+                 'Gender_Churn', 'Education_Level_Churn', 'Marital_Status_Churn',
+                 'Income_Category_Churn', 'Card_Category_Churn'
+                 ]
+    df_ = encoder_helper(df, cat_columns, response)
+    y = df[response]
     X = pd.DataFrame()
+    X[keep_cols] = df[keep_cols]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42)
+    return X_train, X_test, y_train, y_test
 
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size= 0.3, random_state=42)
-    return 
 
 def classification_report_image(y_train,
                                 y_test,
@@ -185,7 +204,17 @@ def feature_importance_plot(model, X_data, output_pth):
     output:
              None
     '''
-    pass
+
+    # Calculate feature importances
+    if isinstance(model, RandomForestClassifier) == False:
+        raise Exception
+
+    importances = model.feature_importances_
+    # Sort feature importances in descending order
+    indices = np.argsort(importances)[::-1]
+
+    # Rearrange feature names so they match the sorted feature importances
+    names = [X.columns[i] for i in indices]
 
 
 def train_models(X_train, X_test, y_train, y_test):
@@ -199,4 +228,53 @@ def train_models(X_train, X_test, y_train, y_test):
     output:
               None
     '''
-    pass
+
+    # grid search
+    rfc = RandomForestClassifier(random_state=42)
+    lrc = LogisticRegression(max_iter=200)
+    param_grid = {
+        'n_estimators': [200, 500],
+        'max_features': ['auto', 'sqrt'],
+        'max_depth': [4, 5, 100],
+        'criterion': ['gini', 'entropy']
+    }
+
+    cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
+    cv_rfc.fit(X_train, y_train)
+
+    lrc.fit(X_train, y_train)
+
+    y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
+    y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
+
+    y_train_preds_lr = lrc.predict(X_train)
+    y_test_preds_lr = lrc.predict(X_test)
+
+    # scores in text file
+    with open(SCORE_RESULT_PATH, mode='w') as f:
+        f.write('random forest results')
+        f.write('test results')
+        f.write(classification_report(y_test, y_test_preds_rf))
+        f.write('train results')
+        f.write(classification_report(y_train, y_train_preds_rf))
+        f.write('logistic regression results')
+        f.write('test results')
+        f.write(classification_report(y_test, y_test_preds_lr))
+        f.write('train results')
+        f.write(classification_report(y_train, y_train_preds_lr))
+
+    # save images
+    my_fig = plt.figure(figsize=(20, 10))
+    lrc_plot = plot_roc_curve(lrc, X_test, y_test)
+    my_fig.savefig(RESULT_IMAGE_PATH + "lrc_plot.png")
+
+    my_fig = plt.figure(figsize=(15, 8))
+    ax = plt.gca()
+    rfc_disp = plot_roc_curve(cv_rfc.best_estimator_,
+                              X_test, y_test, ax=ax, alpha=0.8)
+    lrc_plot.plot(ax=ax, alpha=0.8)
+    my_fig.savefig(RESULT_IMAGE_PATH + "rfc_plot.png")
+
+    # save model
+    joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
+    joblib.dump(lrc, './models/logistic_model.pkl')
