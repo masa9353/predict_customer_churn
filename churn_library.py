@@ -190,7 +190,31 @@ def classification_report_image(y_train,
     output:
              None
     '''
-    pass
+
+    my_fig = plt.rc('figure', figsize=(5, 5))
+    # plt.text(0.01, 0.05, str(model.summary()), {'fontsize': 12}) old approach
+    plt.text(0.01, 1.25, str('Train'), {
+             'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.05, str(classification_report(y_test, y_test_preds_rf)), {
+             'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+    plt.text(0.01, 0.6, str('Test'), {
+             'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.7, str(classification_report(y_train, y_train_preds_rf)), {
+             'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+    plt.axis('off')
+
+    my_fig.savefig(output_pth + "feature_importance.png")
+
+    plt.rc('figure', figsize=(5, 5))
+    plt.text(0.01, 1.25, str('Logistic Regression Train'),
+             {'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.05, str(classification_report(y_train, y_train_preds_lr)), {
+             'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+    plt.text(0.01, 0.6, str('Logistic Regression Test'), {
+             'fontsize': 10}, fontproperties='monospace')
+    plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_lr)), {
+             'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+    plt.axis('off')
 
 
 def feature_importance_plot(model, X_data, output_pth):
@@ -214,7 +238,22 @@ def feature_importance_plot(model, X_data, output_pth):
     indices = np.argsort(importances)[::-1]
 
     # Rearrange feature names so they match the sorted feature importances
-    names = [X.columns[i] for i in indices]
+    names = [X_data.columns[i] for i in indices]
+
+    # Create plot
+    my_fig = plt.figure(figsize=(20, 5))
+
+    # Create plot title
+    plt.title("Feature Importance")
+    plt.ylabel('Importance')
+
+    # Add bars
+    plt.bar(range(X_data.shape[1]), importances[indices])
+
+    # Add feature names as x-axis labels
+    plt.xticks(range(X_data.shape[1]), names, rotation=90)
+
+    my_fig.savefig(output_pth + "feature_importance.png")
 
 
 def train_models(X_train, X_test, y_train, y_test):
