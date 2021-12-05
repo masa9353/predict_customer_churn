@@ -7,22 +7,30 @@ Date: November 2021
 '''
 
 import os
+from os.path import exists
 import logging
 import churn_library as churn
 import pandas as pd
 import pytest
 
+
+LOG_FILE_NAME = './logs/churn_library.log'
+
 logging.basicConfig(
-    filename='./logs/churn_library.log',
+    filename=LOG_FILE_NAME,
     level=logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s')
+
+# IMAGE_PATH = './images/'
+# SCORE_RESULT_PATH = './results.txt'
+# RESULT_IMAGE_PATH = './images/results/'
 
 
 @pytest.fixture(scope="module", autouse=True)
 # @fixture(scope="module", autouse=True)
 def import_bank_data():
-    df = churn.import_data("./data/bank_data.csv")
+    df = churn.import_data(churn.BANK_DATA)
     yield df
 
 
@@ -50,7 +58,7 @@ def encoder_helper_fixture(import_bank_data):
 @pytest.fixture(scope="module", autouse=True)
 def perform_feature_engineering_fixture():
 
-    df = churn.import_data("./data/bank_data.csv")
+    df = churn.import_data(churn.BANK_DATA)
     df['Churn'] = df['Attrition_Flag'].apply(
         lambda val: 0 if val == "Existing Customer" else 1)
 
@@ -146,11 +154,35 @@ def test_perform_feature_engineering(perform_feature_engineering_fixture):
     assert X_test.shape[0] == y_test.shape[0]
 
 
-def test_train_models(train_models):
+def test_train_models():
     '''
     test train_models
     '''
-    pass
+
+    try:
+        churn.train_models()
+    except Exception:
+        logging.error("train_models() Fail")
+        raise AssertionError('train_models() Fail')
+
+    try:
+        # Check scoore
+        with open(churn.SCORE_RESULT_PATH, mode='r') as f:
+            report = f.read()
+            print(report)
+
+        # Therea are result plot images?
+        assert exists(churn.RESULT_LRC_PLOT_PATH)
+        assert exists(churn.RESULT_RFC_PLOT_PATH)
+
+        # There are models?
+        assert exists(churn.MODEL_RFC_PATH)
+        assert exists(churn.MODEL_LOGISTIC_PATH)
+
+    except AssertionError as err:
+        logging.error(
+            "Testing test_train_models: fail in confirming file exist")
+        raise err
 
 
 if __name__ == "__main__":
