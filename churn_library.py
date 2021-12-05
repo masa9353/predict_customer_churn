@@ -23,9 +23,16 @@ import seaborn as sns
 sns.set()
 
 
+BANK_DATA = './data/bank_data.csv'
 IMAGE_PATH = './images/'
 SCORE_RESULT_PATH = './results.txt'
 RESULT_IMAGE_PATH = './images/results/'
+RESULT_LRC_PLOT_PATH = RESULT_IMAGE_PATH + 'lrc_plot.png'
+RESULT_RFC_PLOT_PATH = RESULT_IMAGE_PATH + 'rfc_plot.png'
+
+
+MODEL_RFC_PATH = './models/rfc_model.pkl'
+MODEL_LOGISTIC_PATH = './models/logistic_model.pkl'
 
 
 def import_data(pth):
@@ -153,26 +160,14 @@ def perform_feature_engineering(df, response):
         'Income_Category',
         'Card_Category'
     ]
-    keep_cols = [
-        'Customer_Age',
-        'Dependent_count',
-        'Months_on_book',
-        'Total_Relationship_Count',
-        'Months_Inactive_12_mon',
-        'Contacts_Count_12_mon',
-        'Credit_Limit',
-        'Total_Revolving_Bal',
-        'Avg_Open_To_Buy',
-        'Total_Amt_Chng_Q4_Q1',
-        'Total_Trans_Amt',
-        'Total_Trans_Ct',
-        'Total_Ct_Chng_Q4_Q1',
-        'Avg_Utilization_Ratio',
-        'Gender_Churn',
-        'Education_Level_Churn',
-        'Marital_Status_Churn',
-        'Income_Category_Churn',
-        'Card_Category_Churn']
+    keep_cols = ['Customer_Age', 'Dependent_count', 'Months_on_book',
+                 'Total_Relationship_Count', 'Months_Inactive_12_mon',
+                 'Contacts_Count_12_mon', 'Credit_Limit', 'Total_Revolving_Bal',
+                 'Avg_Open_To_Buy', 'Total_Amt_Chng_Q4_Q1', 'Total_Trans_Amt',
+                 'Total_Trans_Ct', 'Total_Ct_Chng_Q4_Q1', 'Avg_Utilization_Ratio',
+                 'Gender_Churn', 'Education_Level_Churn', 'Marital_Status_Churn',
+                 'Income_Category_Churn', 'Card_Category_Churn'
+                 ]
     df_ = encoder_helper(df, cat_columns, response)
     y = df[response]
     X = pd.DataFrame()
@@ -317,15 +312,15 @@ def train_models(X_train, X_test, y_train, y_test):
     # save images
     my_fig = plt.figure(figsize=(20, 10))
     lrc_plot = plot_roc_curve(lrc, X_test, y_test)
-    my_fig.savefig(RESULT_IMAGE_PATH + "lrc_plot.png")
+    my_fig.savefig(RESULT_LRC_PLOT_PATH)
 
     my_fig = plt.figure(figsize=(15, 8))
     ax = plt.gca()
     rfc_disp = plot_roc_curve(cv_rfc.best_estimator_,
                               X_test, y_test, ax=ax, alpha=0.8)
     lrc_plot.plot(ax=ax, alpha=0.8)
-    my_fig.savefig(RESULT_IMAGE_PATH + "rfc_plot.png")
+    my_fig.savefig(RESULT_RFC_PLOT_PATH)
 
     # save model
-    joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
-    joblib.dump(lrc, './models/logistic_model.pkl')
+    joblib.dump(cv_rfc.best_estimator_, MODEL_RFC_PATH)
+    joblib.dump(lrc, MODEL_LOGISTIC_PATH)
