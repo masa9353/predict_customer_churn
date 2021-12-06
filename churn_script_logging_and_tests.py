@@ -15,16 +15,14 @@ from sklearn.model_selection import train_test_split
 import churn_library as churn
 
 LOG_FILE_NAME = './logs/churn_library.log'
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
 
 logging.basicConfig(
     filename=LOG_FILE_NAME,
-    level=logging.INFO,
+    level=logging.DEBUG,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s')
-
-# IMAGE_PATH = './images/'
-# SCORE_RESULT_PATH = './results.txt'
-# RESULT_IMAGE_PATH = './images/results/'
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -233,7 +231,6 @@ def test_train_models(train_models_fixture):
         # Therea are result plot images?
         assert exists(churn.RESULT_LRC_PLOT_PATH)
         assert exists(churn.RESULT_RFC_PLOT_PATH)
-
         # There are models?
         assert exists(churn.MODEL_RFC_PATH)
         assert exists(churn.MODEL_LOGISTIC_PATH)

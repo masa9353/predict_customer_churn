@@ -25,6 +25,7 @@ sns.set()
 
 BANK_DATA = './data/bank_data.csv'
 IMAGE_PATH = './images/'
+IMAGE_EDA_PATH = IMAGE_PATH + 'eda/'
 SCORE_RESULT_PATH = './results.txt'
 RESULT_IMAGE_PATH = './images/results/'
 RESULT_LRC_PLOT_PATH = RESULT_IMAGE_PATH + 'lrc_plot.png'
@@ -93,23 +94,23 @@ def perform_eda(df):
 
         my_fig = plt.figure(figsize=(20, 10))
         df['Churn'].hist()
-        my_fig.savefig(IMAGE_PATH + "Churn_hist.png")
+        my_fig.savefig(IMAGE_EDA_PATH + "Churn_hist.png")
 
         my_fig = plt.figure(figsize=(20, 10))
         df['Customer_Age'].hist()
-        my_fig.savefig(IMAGE_PATH + "Customer_Age_hist.png")
+        my_fig.savefig(IMAGE_EDA_PATH + "Customer_Age_hist.png")
 
         my_fig = plt.figure(figsize=(20, 10))
         df.Marital_Status.value_counts('normalize').plot(kind='bar')
-        my_fig.savefig(IMAGE_PATH + "Material_Status.png")
+        my_fig.savefig(IMAGE_EDA_PATH + "Material_Status.png")
 
         my_fig = plt.figure(figsize=(20, 10))
         sns.distplot(df['Total_Trans_Ct'])
-        my_fig.savefig(IMAGE_PATH + "Total_Trans_Ct.png")
+        my_fig.savefig(IMAGE_EDA_PATH + "Total_Trans_Ct.png")
 
         my_fig = plt.figure(figsize=(20, 10))
         sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths=2)
-        my_fig.savefig(IMAGE_PATH + "heat_map.png")
+        my_fig.savefig(IMAGE_EDA_PATH + "heat_map.png")
 
     except Exception:
         return False
@@ -327,7 +328,8 @@ def train_models(X_train, X_test, y_train, y_test):
 
     # save images
     my_fig = plt.figure(figsize=(20, 10))
-    lrc_plot = plot_roc_curve(lrc, X_test, y_test)
+    ax = plt.gca()
+    lrc_plot = plot_roc_curve(lrc, X_test, y_test, ax=ax)
     my_fig.savefig(RESULT_LRC_PLOT_PATH)
 
     my_fig = plt.figure(figsize=(15, 8))
