@@ -27,17 +27,16 @@ conda install pytest
 ```
 pylint script_name.py
 autopep8 --in-place --aggressive --aggressive script_name.py
-
+```
 
 # Conda
 
-'''
+```
 conda env export > myenv.yaml
-'''
 ```
 
 # Pip
 
-'''
+```
 pip freeze > requirements.txt
-'''
+```
