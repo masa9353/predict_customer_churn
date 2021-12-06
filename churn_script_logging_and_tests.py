@@ -6,13 +6,13 @@ Date: November 2021
 
 '''
 
-import os
 from os.path import exists
 import logging
-import churn_library as churn
 import pandas as pd
 import pytest
+from sklearn.model_selection import train_test_split
 
+import churn_library as churn
 
 LOG_FILE_NAME = './logs/churn_library.log'
 
@@ -30,13 +30,18 @@ logging.basicConfig(
 @pytest.fixture(scope="module", autouse=True)
 # @fixture(scope="module", autouse=True)
 def import_bank_data():
+    '''import bank data
+    '''
     df = churn.import_data(churn.BANK_DATA)
+
     yield df
 
 
 @pytest.fixture(scope="module", autouse=True)
 # @fixture(scope="module", autouse=True)
 def eda_fixture(import_bank_data):
+    '''eda_fixture
+    '''
     df = import_bank_data
 
     yield df
@@ -44,6 +49,8 @@ def eda_fixture(import_bank_data):
 
 @pytest.fixture(scope="module", autouse=True)
 def encoder_helper_fixture(import_bank_data):
+    '''encoder helper fixture
+    '''
     df = import_bank_data
     cat_columns = [
         'Gender',
@@ -52,16 +59,38 @@ def encoder_helper_fixture(import_bank_data):
         'Income_Category',
         'Card_Category'
     ]
+
     yield df, cat_columns
 
 
 @pytest.fixture(scope="module", autouse=True)
 def perform_feature_engineering_fixture():
-
+    '''Perform feature engineering fixture
+    '''
     df = churn.import_data(churn.BANK_DATA)
     df['Churn'] = df['Attrition_Flag'].apply(
         lambda val: 0 if val == "Existing Customer" else 1)
 
+    cat_columns = [
+        'Gender',
+        'Education_Level',
+        'Marital_Status',
+        'Income_Category',
+        'Card_Category'
+    ]
+    df_ = churn.encoder_helper(df, cat_columns, "Churn")
+    yield df_
+
+
+@pytest.fixture(scope="module", autouse=True)
+def train_models_fixture():
+    '''train models fixture
+    '''
+    df = churn.import_data(churn.BANK_DATA)
+    df['Churn'] = df['Attrition_Flag'].apply(
+        lambda val: 0 if val == "Existing Customer" else 1)
+    y = df['Churn']
+    X = pd.DataFrame()
     # keep_cols = ['Customer_Age', 'Dependent_count', 'Months_on_book',
     #         'Total_Relationship_Count', 'Months_Inactive_12_mon',
     #         'Contacts_Count_12_mon', 'Credit_Limit', 'Total_Revolving_Bal',
@@ -78,7 +107,35 @@ def perform_feature_engineering_fixture():
         'Card_Category'
     ]
     df_ = churn.encoder_helper(df, cat_columns, "Churn")
-    yield df_
+
+    keep_cols = [
+        'Customer_Age',
+        'Dependent_count',
+        'Months_on_book',
+        'Total_Relationship_Count',
+        'Months_Inactive_12_mon',
+        'Contacts_Count_12_mon',
+        'Credit_Limit',
+        'Total_Revolving_Bal',
+        'Avg_Open_To_Buy',
+        'Total_Amt_Chng_Q4_Q1',
+        'Total_Trans_Amt',
+        'Total_Trans_Ct',
+        'Total_Ct_Chng_Q4_Q1',
+        'Avg_Utilization_Ratio',
+        'Gender_Churn',
+        'Education_Level_Churn',
+        'Marital_Status_Churn',
+        'Income_Category_Churn',
+        'Card_Category_Churn']
+
+    X[keep_cols] = df_[keep_cols]
+
+    # train test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.3, random_state=42)
+
+    yield X_train, X_test, y_train, y_test
 
 
 def test_import(import_bank_data):
@@ -154,13 +211,15 @@ def test_perform_feature_engineering(perform_feature_engineering_fixture):
     assert X_test.shape[0] == y_test.shape[0]
 
 
-def test_train_models():
+def test_train_models(train_models_fixture):
     '''
     test train_models
     '''
 
     try:
-        churn.train_models()
+        X_train, X_test, y_train, y_test = train_models_fixture
+        churn.train_models(X_train, X_test, y_train, y_test)
+
     except Exception:
         logging.error("train_models() Fail")
         raise AssertionError('train_models() Fail')
@@ -188,4 +247,3 @@ def test_train_models():
 if __name__ == "__main__":
     print("test test")
     test_encoder_helper(import_bank_data)
-    pass
